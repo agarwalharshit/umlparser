@@ -10,6 +10,8 @@ public class ParserEngine {
     }
 	
 	  private String parser() {
+		  String result = "";
+	        String className = "";
 		  return " ";
 	  }
 }
