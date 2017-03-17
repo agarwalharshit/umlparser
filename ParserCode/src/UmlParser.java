@@ -12,6 +12,7 @@ public class UmlParser {
 	        } 
 		  else {
 	            System.out.println("Invalid keyword " + args[0]);
+	            System.out.println("Invalid keyword " + args[1]);
 	        }
 	}
 	
