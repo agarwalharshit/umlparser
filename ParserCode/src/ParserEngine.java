@@ -15,4 +15,13 @@ public class ParserEngine {
 	        
 		  return " ";
 	  }
+	  private void buildMap(ArrayList<CompilationUnit> cuArray) {
+	        for (CompilationUnit cu : cuArray) {
+	            List<TypeDeclaration> cl = cu.getTypes();
+	            for (Node n : cl) {
+	                ClassOrInterfaceDeclaration coi = (ClassOrInterfaceDeclaration) n;
+	                map.put(coi.getName(), coi.isInterface()); 
+	            }
+	        }
+	    }
 }
