@@ -27,7 +27,7 @@ public class ParserEngine {
 	        }
 	    }
 	  
-	  private void buildMap(ArrayList<CompilationUnit> cuArray) {
+	  private void buildMap() {
 	        for (CompilationUnit cu : cuArray) {
 	            List<TypeDeclaration> cl = cu.getTypes();
 	            for (Node n : cl) {
