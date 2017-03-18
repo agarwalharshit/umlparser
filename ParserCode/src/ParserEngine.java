@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 
 public class ParserEngine {
 
@@ -28,7 +29,24 @@ public class ParserEngine {
 	    }
 	  
 	  
-	
+	  private ArrayList<> getCuArray(String inPath)
+	            throws Exception {
+	        File folder = new File(inPath);
+	        ArrayList<CompilationUnit> cuArray = new ArrayList<CompilationUnit>();
+	        for (final File f : folder.listFiles()) {
+	            if (f.isFile() && f.getName().endsWith(".java")) {
+	                FileInputStream in = new FileInputStream(f);
+	                CompilationUnit cu;
+	                try {
+	                    cu = JavaParser.parse(in);
+	                    cuArray.add(cu);
+	                } finally {
+	                    in.close();
+	                }
+	            }
+	        }
+	        return cuArray;
+	    }
 	  
 	  
 	
