@@ -15,6 +15,18 @@ public class ParserEngine {
 	        
 		  return " ";
 	  }
+	  
+	  private String aToSymScope(String stringScope) {
+	        switch (stringScope) {
+	        case "private":
+	            return "-";
+	        case "public":
+	            return "+";
+	        default:
+	            return "";
+	        }
+	    }
+	  
 	  private void buildMap(ArrayList<CompilationUnit> cuArray) {
 	        for (CompilationUnit cu : cuArray) {
 	            List<TypeDeclaration> cl = cu.getTypes();
