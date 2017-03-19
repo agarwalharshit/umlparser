@@ -45,20 +45,15 @@ public class ParserEngine {
 					FileInputStream fis=null;
 					try {
 						fis = new FileInputStream(file);
-					} catch (FileNotFoundException e) {
-						
-					}
 					if(fis!=null){
-						try {
 							CompilationUnit cu=JavaParser.parse(file);
 							System.out.println(cu);
+					}
 						} catch (ParseException e) {
 							
 						}catch (IOException e) {
 						}
 					}
-				}
-					System.out.println(file.getName());
 				
 			}
 		}
