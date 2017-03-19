@@ -37,7 +37,7 @@ public class ParserEngine {
 	    }
 	  
 	  
-	  public void readFileFromFolder() throws ParseException, IOException{
+	  public void readFileFromFolder(){
 			String location="/Users/Harshit/LECTURES/202/umlparser/TestClass";
 			File files= new File(location);
 			for(File file:files.listFiles()){
@@ -49,7 +49,13 @@ public class ParserEngine {
 						
 					}
 					if(fis!=null){
-						CompilationUnit cu=JavaParser.parse(file);
+						try {
+							CompilationUnit cu=JavaParser.parse(file);
+							System.out.println(cu);
+						} catch (ParseException e) {
+							
+						}catch (IOException e) {
+						}
 					}
 				}
 					System.out.println(file.getName());
