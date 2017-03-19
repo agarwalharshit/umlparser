@@ -34,7 +34,7 @@ public class ParserEngine {
 			String location="/Users/Harshit/LECTURES/202/umlparser/TestClass";
 			File files= new File(location);
 			for(File file:files.listFiles()){
-				System.out.println(file);
+				System.out.println(file.getName());
 				
 			}
 		}
