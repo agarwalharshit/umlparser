@@ -1,5 +1,12 @@
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import japa.parser.JavaParser;
+import japa.parser.ParseException;
+import japa.parser.ast.CompilationUnit;
 
 public class ParserEngine {
 
@@ -30,11 +37,21 @@ public class ParserEngine {
 	    }
 	  
 	  
-	  public void readFileFromFolder(){
+	  public void readFileFromFolder() throws ParseException, IOException{
 			String location="/Users/Harshit/LECTURES/202/umlparser/TestClass";
 			File files= new File(location);
 			for(File file:files.listFiles()){
-				if(file.getName().matches("^.*\\.java$"))
+				if(file.getName().matches("^.*\\.java$")){
+					FileInputStream fis=null;
+					try {
+						fis = new FileInputStream(file);
+					} catch (FileNotFoundException e) {
+						
+					}
+					if(fis!=null){
+						CompilationUnit cu=JavaParser.parse(file);
+					}
+				}
 					System.out.println(file.getName());
 				
 			}
