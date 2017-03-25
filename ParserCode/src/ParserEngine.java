@@ -37,7 +37,8 @@ public class ParserEngine {
 	    }
 	  
 	  
-	  public void readFileFromFolder(){
+	  public ArrayList<CompilationUnit> readFileFromFolder(){
+		  ArrayList<CompilationUnit> allUnits= new ArrayList<CompilationUnit>();
 			String location="/Users/Harshit/LECTURES/202/umlparser/TestClass";
 			File files= new File(location);
 			for(File file:files.listFiles()){
@@ -46,16 +47,15 @@ public class ParserEngine {
 					try {
 						fis = new FileInputStream(file);
 					if(fis!=null){
-							CompilationUnit cu=JavaParser.parse(file);
-							System.out.println(cu);
+						
+						allUnits.add((CompilationUnit)JavaParser.parse(file));
 					}
-						} catch (ParseException e) {
-							
+						} catch (ParseException e) {	
 						}catch (IOException e) {
 						}
 					}
-				
 			}
+			return allUnits;
 		}
 	  
 	  
