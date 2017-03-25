@@ -65,7 +65,8 @@ public class ParserEngine {
 	  
 	    private void buildMap(ArrayList<CompilationUnit> cuArray) {
 	    	for (CompilationUnit cu : cuArray) {
-	           
+	    		 List cl = cu.getTypes();
+		            
 	        }
 	    }
 	
