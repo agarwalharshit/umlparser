@@ -11,7 +11,7 @@ import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
 
 public class ParserEngine {
-
+	ArrayList<CompilationUnit> cuArray1;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
@@ -37,7 +37,7 @@ public class ParserEngine {
 	            return "";
 	        }
 	    }
-	  
+	
 	  
 	  public ArrayList<CompilationUnit> readFileFromFolder(){
 		  ArrayList<CompilationUnit> allUnits= new ArrayList<CompilationUnit>();
