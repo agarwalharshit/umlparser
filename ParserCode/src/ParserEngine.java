@@ -17,6 +17,7 @@ public class ParserEngine {
 
 	}
 	public void start() throws Exception {
+	cuArray = getCuArray(inPath);
     System.out.println("Code Started");
     }
 	
