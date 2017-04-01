@@ -16,7 +16,7 @@ public class ParserEngine {
 	String outputPath;
 	ParserEngine(String inputPath, String outputPath){
 		this.inputPath=inputPath;
-		this.outputPath=outputPath;
+		this.outputPath=inputPath + "\\" + outputPath + ".png";
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
