@@ -11,7 +11,7 @@ import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
 
 public class ParserEngine {
-	ArrayList<CompilationUnit> cuArray1;
+	ArrayList<CompilationUnit> currentArray;
 	String inputPath;
 	String outputPath;
 	ParserEngine(String inputPath, String outputPath){
@@ -23,7 +23,7 @@ public class ParserEngine {
 
 	}
 	public void start() throws Exception {
-	cuArray = getCuArray(inPath);
+		currentArray = getCuArray();
     System.out.println("Code Started");
     }
 	
