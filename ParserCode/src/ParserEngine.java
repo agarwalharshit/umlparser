@@ -12,6 +12,10 @@ import japa.parser.ast.CompilationUnit;
 
 public class ParserEngine {
 	ArrayList<CompilationUnit> cuArray1;
+	
+	ParserEngine(String inputPath, String outputPath){
+		
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
