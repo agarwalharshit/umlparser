@@ -23,7 +23,7 @@ public class ParserEngine {
 
 	}
 	public void start() throws Exception {
-		currentArray = getCuArray();
+		currentArray = readFileFromFolder(inputPath);
     System.out.println("Code Started");
     }
 	
@@ -46,9 +46,9 @@ public class ParserEngine {
 	    }
 	
 	  
-	  public ArrayList<CompilationUnit> readFileFromFolder(){
+	  public ArrayList<CompilationUnit> readFileFromFolder(String location){
 		  ArrayList<CompilationUnit> allUnits= new ArrayList<CompilationUnit>();
-			String location="/Users/Harshit/LECTURES/202/umlparser/TestClass";
+			location="/Users/Harshit/LECTURES/202/umlparser/TestClass";
 			File files= new File(location);
 			for(File file:files.listFiles()){
 				if(file.getName().matches("^.*\\.java$")){
