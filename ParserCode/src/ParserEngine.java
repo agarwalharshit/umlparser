@@ -13,6 +13,7 @@ import japa.parser.ast.CompilationUnit;
 public class ParserEngine {
 	ArrayList<CompilationUnit> currentArray;
 	String inputPath;
+	
 	String outputPath;
 	ParserEngine(String inputPath, String outputPath){
 		this.inputPath=inputPath;
