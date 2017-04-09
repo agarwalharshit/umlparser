@@ -10,6 +10,7 @@ import java.util.List;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.TypeDeclaration;
 
 public class ParserEngine {
