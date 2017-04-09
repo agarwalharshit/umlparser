@@ -29,6 +29,7 @@ public class ParserEngine {
 	public void start() throws Exception {
 		currentArray = readFileFromFolder(inputPath);
     System.out.println("Code Started");
+    
     }
 	
 	  private String parser() {
@@ -73,7 +74,7 @@ public class ParserEngine {
 	  
 	    private void buildMap(ArrayList<CompilationUnit> cuArray) {
 	    	for (CompilationUnit cu : cuArray) {
-	    		 List cl = cu.getTypes();
+	    		 List<TypeDeclaration> cl = cu.getTypes();
 		            
 	        }
 	    }
