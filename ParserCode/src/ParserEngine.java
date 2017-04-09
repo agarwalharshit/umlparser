@@ -14,6 +14,7 @@ import japa.parser.ast.CompilationUnit;
 public class ParserEngine {
 	ArrayList<CompilationUnit> currentArray;
 	HashMap<String, Boolean> map;
+	HashMap<String, String> mapClassConn;
 	String inputPath;
 	
 	String outputPath;
