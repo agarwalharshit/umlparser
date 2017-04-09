@@ -12,6 +12,7 @@ import japa.parser.ast.CompilationUnit;
 
 public class ParserEngine {
 	ArrayList<CompilationUnit> currentArray;
+	HashMap<String, Boolean> map;
 	String inputPath;
 	
 	String outputPath;
