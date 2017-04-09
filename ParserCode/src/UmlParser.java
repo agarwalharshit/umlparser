@@ -15,6 +15,7 @@ public class UmlParser {
 //	            System.out.println("Invalid keyword " + args[1]);
 //	        }
 		ParserEngine pe= new ParserEngine(args[0],args[1]);
+		pe.start();
 		pe.readFileFromFolder(args[0]);
 	}
 	
