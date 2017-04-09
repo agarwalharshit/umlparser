@@ -77,7 +77,7 @@ public class ParserEngine {
 	    private void buildMap(ArrayList<CompilationUnit> cuArray) {
 	    	for (CompilationUnit cu : cuArray) {
 	    		 List<TypeDeclaration> cl = cu.getTypes();
-	    		 for (Node n : cl) {
+	    		 for (TypeDeclaration n : cl) {
 	                 ClassOrInterfaceDeclaration coi = (ClassOrInterfaceDeclaration) n;
 	                 map.put(coi.getName(), coi.isInterface()); // false is class,
 	                                                            // true is interface
