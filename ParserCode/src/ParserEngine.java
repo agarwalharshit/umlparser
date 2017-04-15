@@ -32,6 +32,7 @@ public class ParserEngine {
 		currentArray = readFileFromFolder(inputPath);
     System.out.println("Code Started");
     buildMap(currentArray);
+    for (CompilationUnit cu : currentArray)
     
     }
 	
