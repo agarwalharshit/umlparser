@@ -33,7 +33,7 @@ public class ParserEngine {
     System.out.println("Code Started");
     buildMap(currentArray);
     for (CompilationUnit cu : currentArray){
-    
+    	//  yumlCode += parser(cu);
     }
 	
 	  private String parser() {
