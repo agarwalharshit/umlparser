@@ -31,7 +31,7 @@ public class ParserEngine {
 	public void start() throws Exception {
 		currentArray = readFileFromFolder(inputPath);
     System.out.println("Code Started");
-    buildMap();
+    buildMap(currentArray);
     
     }
 	
