@@ -20,20 +20,25 @@ public class ParserEngine {
 	String outputFile="";
 	HashMap<String,Boolean> classAndInterfaceMap;
 	ArrayList<String> makeFieldPublic = new ArrayList<String>();
+	HashMap<String, String> mapClassConn;
+	String yumlInput="";
 
 	ParserEngine(String inputPath, String outputFileName){
 		this.inputPath=inputPath;
 		this.outputFile=inputPath + "/" + outputFileName + ".png";
 		cUnit=new ArrayList<CompilationUnit>();
 		classAndInterfaceMap= new HashMap<String,Boolean>();
+		  mapClassConn= new HashMap<String, String>();
 		
 	}
 
 	public void start() throws Exception {
 		readAndParseJavaFile();
 		createClassAndInterfaceMap();
-		for(CompilationUnit cu: cUnit)
-		parserUNIT(cu);
+		for(CompilationUnit cu: cUnit){
+			yumlInput=yumlInput+parserUNIT(cu);
+			}
+		System.out.println("yumlInput="+yumlInput);
 	}
 	
 	
@@ -93,7 +98,7 @@ public class ParserEngine {
 	    	return "";
 	    }
 	  
-	    private void parserUNIT(CompilationUnit cUnit) {
+	    private String parserUNIT(CompilationUnit cUnit) {
 	    	String className = "[";
 	        String result = "";
 	        String classShortName = "";
@@ -214,140 +219,85 @@ public class ParserEngine {
 	                    fieldClass = fieldClass.replace("<", "(");
 	                    fieldClass = fieldClass.replace(">", ")");
 	                    
-	                    
 	                    String fieldName = fd.getChildrenNodes().get(1).toString();
 	                    
 	                    if (fieldName.contains("="))
 	                        fieldName = fd.getChildrenNodes().get(1).toString().substring(0, fd.getChildrenNodes().get(1).toString().indexOf("=") - 1);
 	                    
 	                    if (scopeString.equals("-") && makeFieldPublic.contains(fieldName.toLowerCase())) {
-	                        fieldScope = "+";
+	                    	scopeString = "+";
 	                    }
+	                    
 	                    String getDepen = "";
 	                    boolean getDepenMultiple = false;
 	                    if (fieldClass.contains("(")) {
-	                        getDepen = fieldClass.substring(fieldClass.indexOf("(") + 1,
-	                                fieldClass.indexOf(")"));
+	                        getDepen = fieldClass.substring(fieldClass.indexOf("(") + 1,fieldClass.indexOf(")"));
 	                        getDepenMultiple = true;
-	                    } else if (map.containsKey(fieldClass)) {
+	                    } else if (classAndInterfaceMap.containsKey(fieldClass)) {
 	                        getDepen = fieldClass;
 	                    }
-	                    if (getDepen.length() > 0 && map.containsKey(getDepen)) {
+	                    if (getDepen.length() > 0 && classAndInterfaceMap.containsKey(getDepen)) {
 	                        String connection = "-";
 
-	                        if (mapClassConn
-	                                .containsKey(getDepen + "-" + classShortName)) {
-	                            connection = mapClassConn
-	                                    .get(getDepen + "-" + classShortName);
+	                        if (mapClassConn.containsKey(getDepen + "-" + classShortName)) {
+	                            connection = mapClassConn.get(getDepen + "-" + classShortName);
 	                            if (getDepenMultiple)
 	                                connection = "*" + connection;
-	                            mapClassConn.put(getDepen + "-" + classShortName,
-	                                    connection);
+	                            mapClassConn.put(getDepen + "-" + classShortName,connection);
 	                        } else {
 	                            if (getDepenMultiple)
 	                                connection += "*";
-	                            mapClassConn.put(classShortName + "-" + getDepen,
-	                                    connection);
+	                            mapClassConn.put(classShortName + "-" + getDepen,connection);
 	                        }
 	                    }
-	                    if (fieldScope == "+" || fieldScope == "-") {
+	                    
+	                    if (scopeString == "+" || scopeString == "-") {
 	                        if (nextField)
 	                            fields += "; ";
-	                        fields += fieldScope + " " + fieldName + " : " + fieldClass;
+	                        fields += scopeString + " " + fieldName + " : " + fieldClass;
 	                        nextField = true;
 	                    }
-	        			
-	        			
-	        			
-	        			
-	        			
-	        			
+
 	        		}
 	        	}
+	        	
+	        	
+	        if (classOrInterface.getExtends() != null) {
+	        	dependencies += "[" + classShortName + "] " + "-^ " + classOrInterface.getExtends();
+	        	dependencies += ",";
+	        }
+	        if (classOrInterface.getImplements() != null) {
+	            List<ClassOrInterfaceType> interfaceList = (List<ClassOrInterfaceType>) classOrInterface.getImplements();
+	            for (ClassOrInterfaceType intface : interfaceList) {
+	            	dependencies += "[" + classShortName + "] " + "-.-^ " + "["
+	                        + "<<interface>>;" + intface + "]";
+	            	dependencies += ",";
+	            }
+	        }
 
-
-        
-//	        boolean nextField = false;
-//	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
-//	            if (bd instanceof FieldDeclaration) {
-//	                FieldDeclaration fd = ((FieldDeclaration) bd);
-//	                String fieldScope = aToSymScope(
-//	                        bd.toStringWithoutComments().substring(0,
-//	                                bd.toStringWithoutComments().indexOf(" ")));
-//	                String fieldClass = changeBrackets(fd.getType().toString());
-//	                String fieldName = fd.getChildrenNodes().get(1).toString();
-//	                if (fieldName.contains("="))
-//	                    fieldName = fd.getChildrenNodes().get(1).toString()
-//	                            .substring(0, fd.getChildrenNodes().get(1)
-//	                                    .toString().indexOf("=") - 1);
-//
-//	                if (fieldScope.equals("-")
-//	                        && makeFieldPublic.contains(fieldName.toLowerCase())) {
-//	                    fieldScope = "+";
-//	                }
-//	                String getDepen = "";
-//	                boolean getDepenMultiple = false;
-//	                if (fieldClass.contains("(")) {
-//	                    getDepen = fieldClass.substring(fieldClass.indexOf("(") + 1,
-//	                            fieldClass.indexOf(")"));
-//	                    getDepenMultiple = true;
-//	                } else if (map.containsKey(fieldClass)) {
-//	                    getDepen = fieldClass;
-//	                }
-//	                if (getDepen.length() > 0 && map.containsKey(getDepen)) {
-//	                    String connection = "-";
-//
-//	                    if (mapClassConn
-//	                            .containsKey(getDepen + "-" + classShortName)) {
-//	                        connection = mapClassConn
-//	                                .get(getDepen + "-" + classShortName);
-//	                        if (getDepenMultiple)
-//	                            connection = "*" + connection;
-//	                        mapClassConn.put(getDepen + "-" + classShortName,
-//	                                connection);
-//	                    } else {
-//	                        if (getDepenMultiple)
-//	                            connection += "*";
-//	                        mapClassConn.put(classShortName + "-" + getDepen,
-//	                                connection);
-//	                    }
-//	                }
-//	                if (fieldScope == "+" || fieldScope == "-") {
-//	                    if (nextField)
-//	                        fields += "; ";
-//	                    fields += fieldScope + " " + fieldName + " : " + fieldClass;
-//	                    nextField = true;
-//	                }
-//	            }
-//
-//	        }
-//
-//	        if (coi.getExtends() != null) {
-//	            additions += "[" + classShortName + "] " + "-^ " + coi.getExtends();
-//	            additions += ",";
-//	        }
-//	        if (coi.getImplements() != null) {
-//	            List<ClassOrInterfaceType> interfaceList = (List<ClassOrInterfaceType>) coi
-//	                    .getImplements();
-//	            for (ClassOrInterfaceType intface : interfaceList) {
-//	                additions += "[" + classShortName + "] " + "-.-^ " + "["
-//	                        + "<<interface>>;" + intface + "]";
-//	                additions += ",";
-//	            }
-//	        }
-//
-//	        result += className;
-//	        if (!fields.isEmpty()) {
-//	            result += "|" + changeBrackets(fields);
-//	        }
-//	        if (!methods.isEmpty()) {
-//	            result += "|" + changeBrackets(methods);
-//	        }
-//	        result += "]";
-//	        result += additions;
-//	        return result;
-	   // }
+	        result += className;
+	        if (!fields.isEmpty()) {
+	        	
+	        	
+	            result += "|" + replaceBrack(fields);
+	        }
+	        if (!methods.isEmpty()) {
+	            result += "|" + replaceBrack(methods);
+	        }
+	        result += "]";
+	        result += dependencies;
+	        return result;
+	   
 	    }
+	    
+	    private String replaceBrack(String inputString) {
+	    	inputString = inputString.replace("[", "(");
+	    	inputString = inputString.replace(">", ")");
+	    	inputString = inputString.replace("<", "(");
+	    	inputString = inputString.replace("]", ")");
+	        return inputString;
+	    }  
+	    
 	    
 	    
 	    
