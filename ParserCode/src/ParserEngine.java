@@ -6,53 +6,47 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+//import com.github.javaparser.*;
+//import com.github.javaparser.ast.*;
+//import com.github.javaparser.ast.body.*;
+//import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.*;
+import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 
-import japa.parser.JavaParser;
-import japa.parser.ParseException;
-import japa.parser.ast.CompilationUnit;
-import japa.parser.ast.body.ClassOrInterfaceDeclaration;
-import japa.parser.ast.body.TypeDeclaration;
+
+//import japa.parser.JavaParser;
+//import japa.parser.ParseException;
+//import japa.parser.ast.CompilationUnit;
+//import japa.parser.ast.Node;
+//import japa.parser.ast.body.BodyDeclaration;
+//import japa.parser.ast.body.ClassOrInterfaceDeclaration;
+//import japa.parser.ast.body.ConstructorDeclaration;
+//import japa.parser.ast.body.FieldDeclaration;
+//import japa.parser.ast.body.MethodDeclaration;
+//import japa.parser.ast.body.TypeDeclaration;
 
 public class ParserEngine {
-	ArrayList<CompilationUnit> currentArray;
-	HashMap<String, Boolean> map;
-	HashMap<String, String> mapClassConn;
-	String inputPath;
-	
-	String outputPath;
-	ParserEngine(String inputPath, String outputPath){
-		this.inputPath=inputPath;
-		this.outputPath=inputPath + "\\" + outputPath + ".png";
-	}
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	ArrayList<CompilationUnit> cUnit;
+	String inputPath="";
+	String outputFile="";
+	HashMap<String,Boolean> classAndInterfaceMap;
 
+	ParserEngine(String inputPath, String outputFileName){
+		this.inputPath=inputPath;
+		this.outputFile=inputPath + "/" + outputFileName + ".png";
+		cUnit=new ArrayList<CompilationUnit>();
+		classAndInterfaceMap= new HashMap<String,Boolean>();
 	}
+
 	public void start() throws Exception {
-		currentArray = readFileFromFolder(inputPath);
-    System.out.println("Code Started");
-    buildMap(currentArray);
-    for (CompilationUnit cu : currentArray){
-    	//  yumlCode += parser(cu);
-    }
+		readAndParseJavaFile();
+		for(CompilationUnit cu: cUnit)
+		parserUNIT(cu);
+	}
 	
-	  private String parser() {
-		  String result = "";
-	        String className = "";
-	        
-		  return " ";
-	  }
-	  
-	  private String aToSymScope(String stringScope) {
-	        switch (stringScope) {
-	        case "private":
-	            return "-";
-	        case "public":
-	            return "+";
-	        default:
-	            return "";
-	        }
-	    }
 	
 	  
 	  public ArrayList<CompilationUnit> readFileFromFolder(String location){
@@ -76,24 +70,260 @@ public class ParserEngine {
 			return allUnits;
 		}
 	  
-	    private void buildMap(ArrayList<CompilationUnit> cuArray) {
-	    	for (CompilationUnit cu : cuArray) {
-	    		 List<TypeDeclaration> cl = cu.getTypes();
-	    		 for (TypeDeclaration n : cl) {
-	                 ClassOrInterfaceDeclaration coi = (ClassOrInterfaceDeclaration) n;
-	                 map.put(coi.getName(), coi.isInterface()); // false is class,
-	                                                            // true is interface
-	             }
-		            
-	        }
-	    }
-	    
-	    private String parser(CompilationUnit cu) {
-	    	 String result = "";
+	  
+	  void readAndParseJavaFile(){
+		  File folder= new File(inputPath);
+		  File[] files=folder.listFiles();
+		  for(File file:files){
+			  if(file.getName().matches("(.)*\\.java$")){
+				  try {
+					cUnit.add((CompilationUnit)JavaParser.parse(file));
+				} catch (ParseException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			 
+			  }
+		  }
+	  }
+	    private void parserUNIT(CompilationUnit cUnit) {
+	    	String className = "[";
+	        String result = "";
+	        String classShortName = "";
+	        String methods = "";
+	        String fields = "";
+	        String additions = ",";
 	        
-	    	
-	    
-	    	return "";
-	    }
+	        //MyWORK
+	        Node node= cUnit.getTypes().get(0);
+	        ClassOrInterfaceDeclaration classOrInterface= (ClassOrInterfaceDeclaration) node;
+	        if(classOrInterface.isInterface())  className+="<<interface>>;";
+	        className+=classOrInterface.getName();
+	        classShortName = classOrInterface.getName();
+	        List<BodyDeclaration> listBodyDeclaration= ((TypeDeclaration) node).getMembers();
+	        
+	        if(!classOrInterface.isInterface()){
+	        	for(BodyDeclaration bd:listBodyDeclaration){
+	        		if(bd instanceof  ConstructorDeclaration){
+	        			ConstructorDeclaration cd = ((ConstructorDeclaration) bd);
+	   
+	        			
+//	        			if(cd.getDeclarationAsString().matches("^public(.*)")){
+		        			if(!methods.equals(""))	methods += ";";
+		        			methods += "+ " + cd.getName() + "(";
+		        			
+		        			List<Parameter> paramList=cd.getParameters();
+		        			for(Parameter param: paramList){
+		        				 String paramClass = param.getType().toString();
+		                            String paramName = param.getChildrenNodes().get(0).toString();
+		                            methods += paramName + " : " + paramClass;
+		                            
+//		                            if (map.containsKey(paramClass) && !map.get(classShortName)) {
+//		                                additions += "[" + classShortName + "] uses -.->";
+//		                                if (map.get(paramClass)) additions += "[<<interface>>;" + paramClass+ "]";
+//		                                else additions += "[" + paramClass + "]";
+//		                            }
+		                            additions += ",";
+		        			}
+		        			methods += ")";
+	        			//}
+	        			
+	        			}
+	        		}      	
+	        	}
+	        
+	        
+	        	for(BodyDeclaration bd:listBodyDeclaration){
+	        		if(bd instanceof  MethodDeclaration){
+	        			MethodDeclaration md = ((MethodDeclaration) bd);
+	        		}
+//	        	if(bd instanceof   FieldDeclaration){
+//	        		FieldDeclaration fd = ((FieldDeclaration) bd);
+//	        	}
+	        	}
+	        }
+
+//	        ArrayList<String> makeFieldPublic = new ArrayList<String>();
+//
+
+//	        boolean nextParam = false;
+//	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
+//	            // Get Methods
+//	            if (bd instanceof ConstructorDeclaration) {
+//	                ConstructorDeclaration cd = ((ConstructorDeclaration) bd);
+//	                if (cd.getDeclarationAsString().startsWith("public")
+//	                        && !coi.isInterface()) {
+//	                    if (nextParam)
+//	                        methods += ";";
+//	                    methods += "+ " + cd.getName() + "(";
+//	                    for (Object gcn : cd.getChildrenNodes()) {
+//	                        if (gcn instanceof Parameter) {
+//	                            Parameter paramCast = (Parameter) gcn;
+//	                            String paramClass = paramCast.getType().toString();
+//	                            String paramName = paramCast.getChildrenNodes()
+//	                                    .get(0).toString();
+//	                            methods += paramName + " : " + paramClass;
+//	                            if (map.containsKey(paramClass)
+//	                                    && !map.get(classShortName)) {
+//	                                additions += "[" + classShortName
+//	                                        + "] uses -.->";
+//	                                if (map.get(paramClass))
+//	                                    additions += "[<<interface>>;" + paramClass
+//	                                            + "]";
+//	                                else
+//	                                    additions += "[" + paramClass + "]";
+//	                            }
+//	                            additions += ",";
+//	                        }
+//	                    }
+//	                    methods += ")";
+//	                    nextParam = true;
+//	                }
+//	            }
+//	        }
+//	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
+//	            if (bd instanceof MethodDeclaration) {
+//	                MethodDeclaration md = ((MethodDeclaration) bd);
+//	                // Get only public methods
+//	                if (md.getDeclarationAsString().startsWith("public")
+//	                        && !coi.isInterface()) {
+//	                    // Identify Setters and Getters
+//	                    if (md.getName().startsWith("set")
+//	                            || md.getName().startsWith("get")) {
+//	                        String varName = md.getName().substring(3);
+//	                        makeFieldPublic.add(varName.toLowerCase());
+//	                    } else {
+//	                        if (nextParam)
+//	                            methods += ";";
+//	                        methods += "+ " + md.getName() + "(";
+//	                        for (Object gcn : md.getChildrenNodes()) {
+//	                            if (gcn instanceof Parameter) {
+//	                                Parameter paramCast = (Parameter) gcn;
+//	                                String paramClass = paramCast.getType()
+//	                                        .toString();
+//	                                String paramName = paramCast.getChildrenNodes()
+//	                                        .get(0).toString();
+//	                                methods += paramName + " : " + paramClass;
+//	                                if (map.containsKey(paramClass)
+//	                                        && !map.get(classShortName)) {
+//	                                    additions += "[" + classShortName
+//	                                            + "] uses -.->";
+//	                                    if (map.get(paramClass))
+//	                                        additions += "[<<interface>>;"
+//	                                                + paramClass + "]";
+//	                                    else
+//	                                        additions += "[" + paramClass + "]";
+//	                                }
+//	                                additions += ",";
+//	                            } else {
+//	                                String methodBody[] = gcn.toString().split(" ");
+//	                                for (String foo : methodBody) {
+//	                                    if (map.containsKey(foo)
+//	                                            && !map.get(classShortName)) {
+//	                                        additions += "[" + classShortName
+//	                                                + "] uses -.->";
+//	                                        if (map.get(foo))
+//	                                            additions += "[<<interface>>;" + foo
+//	                                                    + "]";
+//	                                        else
+//	                                            additions += "[" + foo + "]";
+//	                                        additions += ",";
+//	                                    }
+//	                                }
+//	                            }
+//	                        }
+//	                        methods += ") : " + md.getType();
+//	                        nextParam = true;
+//	                    }
+//	                }
+//	            }
+//	        }
+//	        
+//	        
+//	        
+//	        
+//	        
+//	        
+//	        boolean nextField = false;
+//	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
+//	            if (bd instanceof FieldDeclaration) {
+//	                FieldDeclaration fd = ((FieldDeclaration) bd);
+//	                String fieldScope = aToSymScope(
+//	                        bd.toStringWithoutComments().substring(0,
+//	                                bd.toStringWithoutComments().indexOf(" ")));
+//	                String fieldClass = changeBrackets(fd.getType().toString());
+//	                String fieldName = fd.getChildrenNodes().get(1).toString();
+//	                if (fieldName.contains("="))
+//	                    fieldName = fd.getChildrenNodes().get(1).toString()
+//	                            .substring(0, fd.getChildrenNodes().get(1)
+//	                                    .toString().indexOf("=") - 1);
+//
+//	                if (fieldScope.equals("-")
+//	                        && makeFieldPublic.contains(fieldName.toLowerCase())) {
+//	                    fieldScope = "+";
+//	                }
+//	                String getDepen = "";
+//	                boolean getDepenMultiple = false;
+//	                if (fieldClass.contains("(")) {
+//	                    getDepen = fieldClass.substring(fieldClass.indexOf("(") + 1,
+//	                            fieldClass.indexOf(")"));
+//	                    getDepenMultiple = true;
+//	                } else if (map.containsKey(fieldClass)) {
+//	                    getDepen = fieldClass;
+//	                }
+//	                if (getDepen.length() > 0 && map.containsKey(getDepen)) {
+//	                    String connection = "-";
+//
+//	                    if (mapClassConn
+//	                            .containsKey(getDepen + "-" + classShortName)) {
+//	                        connection = mapClassConn
+//	                                .get(getDepen + "-" + classShortName);
+//	                        if (getDepenMultiple)
+//	                            connection = "*" + connection;
+//	                        mapClassConn.put(getDepen + "-" + classShortName,
+//	                                connection);
+//	                    } else {
+//	                        if (getDepenMultiple)
+//	                            connection += "*";
+//	                        mapClassConn.put(classShortName + "-" + getDepen,
+//	                                connection);
+//	                    }
+//	                }
+//	                if (fieldScope == "+" || fieldScope == "-") {
+//	                    if (nextField)
+//	                        fields += "; ";
+//	                    fields += fieldScope + " " + fieldName + " : " + fieldClass;
+//	                    nextField = true;
+//	                }
+//	            }
+//
+//	        }
+//
+//	        if (coi.getExtends() != null) {
+//	            additions += "[" + classShortName + "] " + "-^ " + coi.getExtends();
+//	            additions += ",";
+//	        }
+//	        if (coi.getImplements() != null) {
+//	            List<ClassOrInterfaceType> interfaceList = (List<ClassOrInterfaceType>) coi
+//	                    .getImplements();
+//	            for (ClassOrInterfaceType intface : interfaceList) {
+//	                additions += "[" + classShortName + "] " + "-.-^ " + "["
+//	                        + "<<interface>>;" + intface + "]";
+//	                additions += ",";
+//	            }
+//	        }
+//
+//	        result += className;
+//	        if (!fields.isEmpty()) {
+//	            result += "|" + changeBrackets(fields);
+//	        }
+//	        if (!methods.isEmpty()) {
+//	            result += "|" + changeBrackets(methods);
+//	        }
+//	        result += "]";
+//	        result += additions;
+//	        return result;
+	   // }
 	
 }
