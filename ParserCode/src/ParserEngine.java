@@ -106,7 +106,7 @@ public class ParserEngine {
 	        String fields = "";
 	        String dependencies = ",";
 	        
-	        //MyWORK
+	 
 	        Node node= cUnit.getTypes().get(0);
 	        ClassOrInterfaceDeclaration classOrInterface= (ClassOrInterfaceDeclaration) node;
 	        if(classOrInterface.isInterface())  className+="<<interface>>;";
@@ -119,7 +119,7 @@ public class ParserEngine {
 	        		if(bd instanceof  ConstructorDeclaration){
 	        			ConstructorDeclaration cd = ((ConstructorDeclaration) bd);
 	   
-	        			
+	        			System.out.println(cd.getDeclarationAsString());
 //	        			if(cd.getDeclarationAsString().matches("^public(.*)")){
 		        			if(!methods.equals(""))	methods += ";";
 		        			methods += "+ " + cd.getName() + "(";

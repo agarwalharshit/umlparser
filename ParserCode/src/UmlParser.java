@@ -10,6 +10,7 @@ public class UmlParser {
 			try {
 				pe.start();
 			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		
 		}
