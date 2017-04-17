@@ -49,6 +49,7 @@ public class ParserEngine {
 			}
 		yumlInput=yumlInput+addDependencies();
 		yumlInput=UniqueCode(yumlInput);
+		generateClassDiagram(yumlInput);
 		System.out.println(yumlInput);
 	}
 	
@@ -342,7 +343,7 @@ public class ParserEngine {
 	        return inputString;
 	    }  
 	    
-	    public Boolean generateClassDiagram(String outputDiagramString, String outPath) {
+	    public Boolean generateClassDiagram(String outputDiagramString) {
 
 	        try {
 	            String yumlLink = "https://yuml.me/diagram/plain/class/" + outputDiagramString+ ".png";
@@ -350,7 +351,7 @@ public class ParserEngine {
 	            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
 	           // int responseCode = conn.getResponseCode();
 	            if (httpsURLConnection.getResponseCode() == 200) {
-	              File file= new File(outPath);
+	              File file= new File(outputFile);
 	            OutputStream outputStream = new FileOutputStream(file);
 	            
 	            byte[] bytes = new byte[1024];
