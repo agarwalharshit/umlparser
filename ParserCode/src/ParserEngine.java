@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-//import com.github.javaparser.*;
-//import com.github.javaparser.ast.*;
-//import com.github.javaparser.ast.body.*;
-//import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
@@ -17,16 +13,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 
 
-//import japa.parser.JavaParser;
-//import japa.parser.ParseException;
-//import japa.parser.ast.CompilationUnit;
-//import japa.parser.ast.Node;
-//import japa.parser.ast.body.BodyDeclaration;
-//import japa.parser.ast.body.ClassOrInterfaceDeclaration;
-//import japa.parser.ast.body.ConstructorDeclaration;
-//import japa.parser.ast.body.FieldDeclaration;
-//import japa.parser.ast.body.MethodDeclaration;
-//import japa.parser.ast.body.TypeDeclaration;
+
 
 public class ParserEngine {
 	ArrayList<CompilationUnit> cUnit;
@@ -71,6 +58,15 @@ public class ParserEngine {
 		}
 	  
 	  
+	  void createClassAndInterfaceMap(){
+		  for(CompilationUnit cu: cUnit){
+			  for(TypeDeclaration td: cu.getTypes()){
+				  ClassOrInterfaceDeclaration classOrInterface= (ClassOrInterfaceDeclaration) td; 
+				  classAndInterfaceMap.put(classOrInterface.getName(),classOrInterface.isInterface());
+			  }   
+		  }
+	  }
+	  
 	  void readAndParseJavaFile(){
 		  File folder= new File(inputPath);
 		  File[] files=folder.listFiles();
@@ -93,7 +89,7 @@ public class ParserEngine {
 	        String classShortName = "";
 	        String methods = "";
 	        String fields = "";
-	        String additions = ",";
+	        String dependencies = ",";
 	        
 	        //MyWORK
 	        Node node= cUnit.getTypes().get(0);
@@ -118,16 +114,17 @@ public class ParserEngine {
 		        				 String paramClass = param.getType().toString();
 		                            String paramName = param.getChildrenNodes().get(0).toString();
 		                            methods += paramName + " : " + paramClass;
-		                            
-//		                            if (map.containsKey(paramClass) && !map.get(classShortName)) {
-//		                                additions += "[" + classShortName + "] uses -.->";
-//		                                if (map.get(paramClass)) additions += "[<<interface>>;" + paramClass+ "]";
-//		                                else additions += "[" + paramClass + "]";
-//		                            }
-		                            additions += ",";
+		                            if(classAndInterfaceMap.containsKey(paramClass) && !classOrInterface.isInterface()){
+		                            	dependencies += "[" + classShortName;
+		                            	dependencies += "] uses -.->";
+		                            	if (classAndInterfaceMap.get(paramClass)){
+		                            		dependencies += "[<<interface>>;" + paramClass+ "]";
+		                            	}
+		                                else dependencies += "[" + paramClass + "]";
+		                            }
+		                            	dependencies += ",";
 		        			}
 		        			methods += ")";
-	        			//}
 	        			
 	        			}
 	        		}      	
@@ -137,6 +134,55 @@ public class ParserEngine {
 	        	for(BodyDeclaration bd:listBodyDeclaration){
 	        		if(bd instanceof  MethodDeclaration){
 	        			MethodDeclaration md = ((MethodDeclaration) bd);
+	        		//	if(cd.getDeclarationAsString().matches("^public(.*)")){
+	        			
+	        			if (md.getName().startsWith("get") || md.getName().startsWith("set")) {
+	                        String varName = md.getName().substring(3);
+	                        //makeFieldPublic.add(varName.toLowerCase());
+	                    } else {
+	                        if (!methods.equals(""))
+	                            methods += ";";
+	                        methods += "+ " + md.getName() + "(";
+	                        List<Parameter> paramList=md.getParameters();
+	                        
+	                        for (Object gcn : md.getChildrenNodes()) {
+	                            if (gcn instanceof Parameter) {
+	                                Parameter param = (Parameter) gcn;
+	                                String paramClass = param.getType().toString();
+		                            String paramName = param.getChildrenNodes().get(0).toString();
+		                            methods += paramName + " : " + paramClass;
+		                            if(classAndInterfaceMap.containsKey(paramClass) && !classOrInterface.isInterface()){
+		                            	dependencies += "[" + classShortName;
+		                            	dependencies += "] uses -.->";
+		                            	if (classAndInterfaceMap.get(paramClass)){
+		                            		dependencies += "[<<interface>>;" + paramClass+ "]";
+		                            	}
+		                                else dependencies += "[" + paramClass + "]";
+		                            }
+		                            	dependencies += ",";
+		                            	
+		                            	
+//	                            } else {
+//	                                String methodBody[] = gcn.toString().split(" ");
+//	                                for (String foo : methodBody) {
+//	                                    if (map.containsKey(foo)
+//	                                            && !map.get(classShortName)) {
+//	                                        additions += "[" + classShortName
+//	                                                + "] uses -.->";
+//	                                        if (map.get(foo))
+//	                                            additions += "[<<interface>>;" + foo
+//	                                                    + "]";
+//	                                        else
+//	                                            additions += "[" + foo + "]";
+//	                                        additions += ",";
+//	                                    }
+//	                                }
+//	                            }
+	                        }
+	                    }
+	        			
+	        			
+	        			
 	        		}
 //	        	if(bd instanceof   FieldDeclaration){
 //	        		FieldDeclaration fd = ((FieldDeclaration) bd);
@@ -147,41 +193,7 @@ public class ParserEngine {
 //	        ArrayList<String> makeFieldPublic = new ArrayList<String>();
 //
 
-//	        boolean nextParam = false;
-//	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
-//	            // Get Methods
-//	            if (bd instanceof ConstructorDeclaration) {
-//	                ConstructorDeclaration cd = ((ConstructorDeclaration) bd);
-//	                if (cd.getDeclarationAsString().startsWith("public")
-//	                        && !coi.isInterface()) {
-//	                    if (nextParam)
-//	                        methods += ";";
-//	                    methods += "+ " + cd.getName() + "(";
-//	                    for (Object gcn : cd.getChildrenNodes()) {
-//	                        if (gcn instanceof Parameter) {
-//	                            Parameter paramCast = (Parameter) gcn;
-//	                            String paramClass = paramCast.getType().toString();
-//	                            String paramName = paramCast.getChildrenNodes()
-//	                                    .get(0).toString();
-//	                            methods += paramName + " : " + paramClass;
-//	                            if (map.containsKey(paramClass)
-//	                                    && !map.get(classShortName)) {
-//	                                additions += "[" + classShortName
-//	                                        + "] uses -.->";
-//	                                if (map.get(paramClass))
-//	                                    additions += "[<<interface>>;" + paramClass
-//	                                            + "]";
-//	                                else
-//	                                    additions += "[" + paramClass + "]";
-//	                            }
-//	                            additions += ",";
-//	                        }
-//	                    }
-//	                    methods += ")";
-//	                    nextParam = true;
-//	                }
-//	            }
-//	        }
+
 //	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
 //	            if (bd instanceof MethodDeclaration) {
 //	                MethodDeclaration md = ((MethodDeclaration) bd);
@@ -325,5 +337,5 @@ public class ParserEngine {
 //	        result += additions;
 //	        return result;
 	   // }
-	
+	    }
 }
