@@ -10,7 +10,6 @@ import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
 
 
 
@@ -20,12 +19,14 @@ public class ParserEngine {
 	String inputPath="";
 	String outputFile="";
 	HashMap<String,Boolean> classAndInterfaceMap;
+	ArrayList<String> makeFieldPublic = new ArrayList<String>();
 
 	ParserEngine(String inputPath, String outputFileName){
 		this.inputPath=inputPath;
 		this.outputFile=inputPath + "/" + outputFileName + ".png";
 		cUnit=new ArrayList<CompilationUnit>();
 		classAndInterfaceMap= new HashMap<String,Boolean>();
+		
 	}
 
 	public void start() throws Exception {
@@ -84,6 +85,14 @@ public class ParserEngine {
 			  }
 		  }
 	  }
+	  
+	    private String resolveScope(String scope) {
+	    	if(scope.trim().equalsIgnoreCase("private")) return "-";
+	    	if(scope.trim().equalsIgnoreCase("public")) return "+";
+	    	if(scope.trim().equalsIgnoreCase("protected")) return "#";
+	    	return "";
+	    }
+	  
 	    private void parserUNIT(CompilationUnit cUnit) {
 	    	String className = "[";
 	        String result = "";
@@ -139,16 +148,17 @@ public class ParserEngine {
 	        			
 	        			if (md.getName().startsWith("get") || md.getName().startsWith("set")) {
 	                        String varName = md.getName().substring(3);
-	                        //makeFieldPublic.add(varName.toLowerCase());
+	                        makeFieldPublic.add(varName.toLowerCase());
 	                    } else {
 	                        if (!methods.equals(""))
 	                            methods += ";";
 	                        methods += "+ " + md.getName() + "(";
 	                        List<Parameter> paramList=md.getParameters();
 	                        
-	                        for (Object gcn : md.getChildrenNodes()) {
-	                            if (gcn instanceof Parameter) {
-	                                Parameter param = (Parameter) gcn;
+	                        for (Object childNodeObject : md.getChildrenNodes()) {
+	                            if (childNodeObject instanceof Parameter) {
+	                                Parameter param = (Parameter) childNodeObject;
+	                                
 	                                String paramClass = param.getType().toString();
 		                            String paramName = param.getChildrenNodes().get(0).toString();
 		                            methods += paramName + " : " + paramClass;
@@ -161,103 +171,102 @@ public class ParserEngine {
 		                                else dependencies += "[" + paramClass + "]";
 		                            }
 		                            	dependencies += ",";
-		                            	
-		                            	
-//	                            } else {
-//	                                String methodBody[] = gcn.toString().split(" ");
-//	                                for (String foo : methodBody) {
-//	                                    if (map.containsKey(foo)
-//	                                            && !map.get(classShortName)) {
-//	                                        additions += "[" + classShortName
-//	                                                + "] uses -.->";
-//	                                        if (map.get(foo))
-//	                                            additions += "[<<interface>>;" + foo
-//	                                                    + "]";
-//	                                        else
-//	                                            additions += "[" + foo + "]";
-//	                                        additions += ",";
-//	                                    }
-//	                                }
-//	                            }
+	
+	                            } else {
+	                            	
+	                            	
+	                            	
+	                                String bodyArr[] = childNodeObject.toString().split(" ");
+	                                
+	                                for (String body : bodyArr) {
+	                                	 if(classAndInterfaceMap.containsKey(body) && !classOrInterface.isInterface()){
+	 		                            	dependencies += "[" + classShortName;
+	 		                            	dependencies += "] uses -.->";
+	 		                            	if (classAndInterfaceMap.get(body)){
+	 		                            		dependencies += "[<<interface>>;" + body+ "]";
+	 		                            	}
+	 		                                else dependencies += "[" + body + "]";
+	 		                            	dependencies += ",";
+	 		                            }
+	 		                            	
+	                                }
+	                            }
 	                        }
+	                        methods += ") : " + md.getType();
+	                           // nextParam = true;
+	        		}
+	        	}
+	        }
+	        	 boolean nextField = false;
+	        	for(BodyDeclaration bd:listBodyDeclaration){
+	        		if(bd instanceof   FieldDeclaration){
+	        			FieldDeclaration fd = ((FieldDeclaration) bd);
+	        			
+	        			String scopeString=bd.toStringWithoutComments();
+	        			scopeString=scopeString.substring(0,scopeString.indexOf(" "));
+	        			
+	                    scopeString = resolveScope(scopeString);
+	                    
+	                    
+	                    String fieldClass = fd.getType().toString();
+	                    fieldClass = fieldClass.replace("[", "(");
+	                    fieldClass = fieldClass.replace("]", ")");
+	                    fieldClass = fieldClass.replace("<", "(");
+	                    fieldClass = fieldClass.replace(">", ")");
+	                    
+	                    
+	                    String fieldName = fd.getChildrenNodes().get(1).toString();
+	                    
+	                    if (fieldName.contains("="))
+	                        fieldName = fd.getChildrenNodes().get(1).toString().substring(0, fd.getChildrenNodes().get(1).toString().indexOf("=") - 1);
+	                    
+	                    if (scopeString.equals("-") && makeFieldPublic.contains(fieldName.toLowerCase())) {
+	                        fieldScope = "+";
+	                    }
+	                    String getDepen = "";
+	                    boolean getDepenMultiple = false;
+	                    if (fieldClass.contains("(")) {
+	                        getDepen = fieldClass.substring(fieldClass.indexOf("(") + 1,
+	                                fieldClass.indexOf(")"));
+	                        getDepenMultiple = true;
+	                    } else if (map.containsKey(fieldClass)) {
+	                        getDepen = fieldClass;
+	                    }
+	                    if (getDepen.length() > 0 && map.containsKey(getDepen)) {
+	                        String connection = "-";
+
+	                        if (mapClassConn
+	                                .containsKey(getDepen + "-" + classShortName)) {
+	                            connection = mapClassConn
+	                                    .get(getDepen + "-" + classShortName);
+	                            if (getDepenMultiple)
+	                                connection = "*" + connection;
+	                            mapClassConn.put(getDepen + "-" + classShortName,
+	                                    connection);
+	                        } else {
+	                            if (getDepenMultiple)
+	                                connection += "*";
+	                            mapClassConn.put(classShortName + "-" + getDepen,
+	                                    connection);
+	                        }
+	                    }
+	                    if (fieldScope == "+" || fieldScope == "-") {
+	                        if (nextField)
+	                            fields += "; ";
+	                        fields += fieldScope + " " + fieldName + " : " + fieldClass;
+	                        nextField = true;
 	                    }
 	        			
 	        			
 	        			
+	        			
+	        			
+	        			
 	        		}
-//	        	if(bd instanceof   FieldDeclaration){
-//	        		FieldDeclaration fd = ((FieldDeclaration) bd);
-//	        	}
 	        	}
-	        }
-
-//	        ArrayList<String> makeFieldPublic = new ArrayList<String>();
-//
 
 
-//	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
-//	            if (bd instanceof MethodDeclaration) {
-//	                MethodDeclaration md = ((MethodDeclaration) bd);
-//	                // Get only public methods
-//	                if (md.getDeclarationAsString().startsWith("public")
-//	                        && !coi.isInterface()) {
-//	                    // Identify Setters and Getters
-//	                    if (md.getName().startsWith("set")
-//	                            || md.getName().startsWith("get")) {
-//	                        String varName = md.getName().substring(3);
-//	                        makeFieldPublic.add(varName.toLowerCase());
-//	                    } else {
-//	                        if (nextParam)
-//	                            methods += ";";
-//	                        methods += "+ " + md.getName() + "(";
-//	                        for (Object gcn : md.getChildrenNodes()) {
-//	                            if (gcn instanceof Parameter) {
-//	                                Parameter paramCast = (Parameter) gcn;
-//	                                String paramClass = paramCast.getType()
-//	                                        .toString();
-//	                                String paramName = paramCast.getChildrenNodes()
-//	                                        .get(0).toString();
-//	                                methods += paramName + " : " + paramClass;
-//	                                if (map.containsKey(paramClass)
-//	                                        && !map.get(classShortName)) {
-//	                                    additions += "[" + classShortName
-//	                                            + "] uses -.->";
-//	                                    if (map.get(paramClass))
-//	                                        additions += "[<<interface>>;"
-//	                                                + paramClass + "]";
-//	                                    else
-//	                                        additions += "[" + paramClass + "]";
-//	                                }
-//	                                additions += ",";
-//	                            } else {
-//	                                String methodBody[] = gcn.toString().split(" ");
-//	                                for (String foo : methodBody) {
-//	                                    if (map.containsKey(foo)
-//	                                            && !map.get(classShortName)) {
-//	                                        additions += "[" + classShortName
-//	                                                + "] uses -.->";
-//	                                        if (map.get(foo))
-//	                                            additions += "[<<interface>>;" + foo
-//	                                                    + "]";
-//	                                        else
-//	                                            additions += "[" + foo + "]";
-//	                                        additions += ",";
-//	                                    }
-//	                                }
-//	                            }
-//	                        }
-//	                        methods += ") : " + md.getType();
-//	                        nextParam = true;
-//	                    }
-//	                }
-//	            }
-//	        }
-//	        
-//	        
-//	        
-//	        
-//	        
-//	        
+        
 //	        boolean nextField = false;
 //	        for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
 //	            if (bd instanceof FieldDeclaration) {
@@ -339,4 +348,7 @@ public class ParserEngine {
 //	        return result;
 	   // }
 	    }
+	    
+	    
+	    
 }
