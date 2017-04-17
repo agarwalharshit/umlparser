@@ -1,10 +1,19 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
@@ -38,10 +47,38 @@ public class ParserEngine {
 		for(CompilationUnit cu: cUnit){
 			yumlInput=yumlInput+parserUNIT(cu);
 			}
-		System.out.println("yumlInput="+yumlInput);
+		yumlInput=yumlInput+addDependencies();
+		yumlInput=UniqueCode(yumlInput);
+		System.out.println(yumlInput);
 	}
 	
 	
+	
+	
+	   private String UniqueCode(String output) {
+	        String[] code = output.split(",");
+	        String[] uniqueCodeLines = new LinkedHashSet<String>(Arrays.asList(code)).toArray(new String[0]);
+	        String result = String.join(",", uniqueCodeLines);
+	        return result;
+	    }
+	
+    private String addDependencies() {
+        String outputStr = "";
+        Set<String> keySet;
+        keySet = mapClassConn.keySet();
+        
+        for (String key : keySet) {
+        	
+            String[] elements = key.split("-");
+            if (classAndInterfaceMap.get(elements[0])) outputStr += "[<<interface>>;" + elements[0] + "]";
+            else outputStr += "[" + elements[0] + "]";
+            outputStr += mapClassConn.get(key);
+            if (classAndInterfaceMap.get(elements[1])) outputStr += "[<<interface>>;" + elements[1] + "]";
+            else outputStr += "[" + elements[1] + "]";
+            outputStr += ",";
+        }
+        return outputStr;
+    }
 	  
 	  public ArrayList<CompilationUnit> readFileFromFolder(String location){
 		  ArrayList<CompilationUnit> allUnits= new ArrayList<CompilationUnit>();
@@ -107,7 +144,10 @@ public class ParserEngine {
 	        String dependencies = ",";
 	        
 	 
-	        Node node= cUnit.getTypes().get(0);
+	      //  Node node= cUnit.getTypes().get(0);
+	        List<TypeDeclaration> ltd = cUnit.getTypes();
+	        Node node = ltd.get(0); // assuming no nested classes
+	        
 	        ClassOrInterfaceDeclaration classOrInterface= (ClassOrInterfaceDeclaration) node;
 	        if(classOrInterface.isInterface())  className+="<<interface>>;";
 	        className+=classOrInterface.getName();
@@ -115,12 +155,16 @@ public class ParserEngine {
 	        List<BodyDeclaration> listBodyDeclaration= ((TypeDeclaration) node).getMembers();
 	        
 	        if(!classOrInterface.isInterface()){
-	        	for(BodyDeclaration bd:listBodyDeclaration){
+	        	//for(BodyDeclaration bd:listBodyDeclaration){
+	        	for (BodyDeclaration bd : ((TypeDeclaration) node).getMembers()) {
 	        		if(bd instanceof  ConstructorDeclaration){
 	        			ConstructorDeclaration cd = ((ConstructorDeclaration) bd);
-	   
-	        			System.out.println(cd.getDeclarationAsString());
+//	        				System.out.println(cd.getModifiers());
+//	        				System.out.println(ModifierSet.isPublic(cd.getModifiers()));
+//	        				System.out.println(ModifierSet.isPrivate(cd.getModifiers()));
+//	        			
 //	        			if(cd.getDeclarationAsString().matches("^public(.*)")){
+	        				if(ModifierSet.isPublic(cd.getModifiers())){
 		        			if(!methods.equals(""))	methods += ";";
 		        			methods += "+ " + cd.getName() + "(";
 		        			
@@ -140,7 +184,7 @@ public class ParserEngine {
 		                            	dependencies += ",";
 		        			}
 		        			methods += ")";
-	        			
+	        				}
 	        			}
 	        		}      	
 	        	}
@@ -150,7 +194,7 @@ public class ParserEngine {
 	        		if(bd instanceof  MethodDeclaration){
 	        			MethodDeclaration md = ((MethodDeclaration) bd);
 	        		//	if(cd.getDeclarationAsString().matches("^public(.*)")){
-	        			
+	        			if(ModifierSet.isPublic(md.getModifiers())){
 	        			if (md.getName().startsWith("get") || md.getName().startsWith("set")) {
 	                        String varName = md.getName().substring(3);
 	                        makeFieldPublic.add(varName.toLowerCase());
@@ -200,7 +244,7 @@ public class ParserEngine {
 	                        methods += ") : " + md.getType();
 	                           // nextParam = true;
 	        		}
-	        	}
+	        			}}
 	        }
 	        	 boolean nextField = false;
 	        	for(BodyDeclaration bd:listBodyDeclaration){
@@ -298,7 +342,33 @@ public class ParserEngine {
 	        return inputString;
 	    }  
 	    
-	    
+	    public Boolean generateClassDiagram(String outputDiagramString, String outPath) {
+
+	        try {
+	            String yumlLink = "https://yuml.me/diagram/plain/class/" + outputDiagramString+ ".png";
+	            URL url = new URL(yumlLink);
+	            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
+	           // int responseCode = conn.getResponseCode();
+	            if (httpsURLConnection.getResponseCode() == 200) {
+	              File file= new File(outPath);
+	            OutputStream outputStream = new FileOutputStream(file);
+	            
+	            byte[] bytes = new byte[1024];
+	            int read = 0;
+	            while ((read = httpsURLConnection.getInputStream().read(bytes)) != -1) {
+	                outputStream.write(bytes, 0, read);
+	            }
+	            outputStream.close();
+	            httpsURLConnection.disconnect();
+	            }else{  
+	            	 System.out.println("Failed : HTTP error code : " + httpsURLConnection.getResponseCode());
+	            }
+            
+	        } catch (Exception e) {
+	           System.out.println(e.getMessage());
+	        }
+	        return null;
+	    }   
 	    
 	    
 }
