@@ -30,6 +30,7 @@ public class ParserEngine {
 
 	public void start() throws Exception {
 		readAndParseJavaFile();
+		createClassAndInterfaceMap();
 		for(CompilationUnit cu: cUnit)
 		parserUNIT(cu);
 	}
