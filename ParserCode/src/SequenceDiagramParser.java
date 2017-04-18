@@ -7,10 +7,6 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.*;
 import net.sourceforge.plantuml.SourceStringReader;
 
-
-
-
-
 public class SequenceDiagramParser {
 		String inputPath="";
 		String seqDiagCode="@startuml\n";
@@ -25,14 +21,14 @@ public class SequenceDiagramParser {
 	    HashMap<String, ArrayList<MethodCallExpr>> methodCallStack= new HashMap<String, ArrayList<MethodCallExpr>>();
 
 	    
-	    SequenceDiagramParser(String inputPath, String inputClassName, String inputFunctionName,String outputFile) {
+	    SequenceDiagramParser(String inputPath,String outputFile) {
 	        this.inputPath = inputPath;
 	        this.outputPath = inputPath + "/" + outputFile + ".png";
-	        this.inputClassName=inputClassName;
-	    	this.inputFunctionName=inputFunctionName;
+	        
 	    }
-	    public void generateSequenceDiagram() throws Exception {
-	    	
+	    public void generateSequenceDiagram(String inputClassName, String inputFunctionName) throws Exception {
+	    	this.inputClassName=inputClassName;
+	    	this.inputFunctionName=inputFunctionName;
 	    	 readAndParseJavaFile();
 	    	 preCompileClasses();
 	    	 seqDiagCode = seqDiagCode+ "actor user #black\n";
@@ -60,7 +56,7 @@ public class SequenceDiagramParser {
 	            }
 	        }
 	    }
-	  //Changed
+	    
 	    private void preCompileClasses() {
 	        for (CompilationUnit compilationUnit : cUnit) {
 	        	ClassOrInterfaceDeclaration classOrInterfaceDeclaration=null;
@@ -122,7 +118,7 @@ public class SequenceDiagramParser {
 				
 				System.out.println("FileNotFoundException ocurred"+e.getMessage());
 			}	catch (IOException e) {
-				System.out.println("IOException Error ocurred"+e.getMessage());
+				System.out.println("IOException ocurred"+e.getMessage());
 			}
 	    }
 

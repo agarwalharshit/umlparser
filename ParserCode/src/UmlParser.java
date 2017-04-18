@@ -10,16 +10,15 @@ public class UmlParser {
 			try {
 				pe.start();
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.out.println("Exception ocurred"+e.getMessage());
 			}
 		
 		}else{
-			SequenceDiagramParser sdp = new SequenceDiagramParser(args[1], args[2], args[3], args[4]);
+			SequenceDiagramParser sdp = new SequenceDiagramParser(args[1], args[4]);
 			try {
-				sdp.generateSequenceDiagram();
+				sdp.generateSequenceDiagram(args[2], args[3]);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Exception ocurred"+e.getMessage());
 			}
 			
 		}
