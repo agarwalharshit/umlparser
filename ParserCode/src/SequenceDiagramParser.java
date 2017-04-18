@@ -34,19 +34,18 @@ public class SequenceDiagramParser {
 	    public void generateSequenceDiagram() throws Exception {
 	    	
 	    	 readAndParseJavaFile();
-	    	 compileClasses();
+	    	 preCompileClasses();
 	    	 seqDiagCode = seqDiagCode+ "actor user #black\n";
 	    	 seqDiagCode = seqDiagCode+ "user" + " -> " + inputClassName + " : " + inputFunctionName + "\n";
 	    	 seqDiagCode = seqDiagCode+ "activate " + methodClassMapping.get(inputFunctionName) + "\n";
-		     parse(inputFunctionName);
+	    	 generateSequenceCode(inputFunctionName);
 		     seqDiagCode = seqDiagCode+ "@enduml";
-		     generateDiagram(seqDiagCode);
-		     System.out.println("Plant UML Code:\n" + seqDiagCode);
+		     sequenceDiagramOutputGeneration();
 	    }
 
 
 
-	    private void parse(String callerFunc) {
+	    private void generateSequenceCode(String callerFunc) {
 
 	        for (MethodCallExpr mce : methodCallStack.get(callerFunc)) {
 	            String callerClass = methodClassMapping.get(callerFunc);
@@ -55,14 +54,14 @@ public class SequenceDiagramParser {
 	            if (methodClassMapping.containsKey(calleeFunc)) {
 	            	seqDiagCode += callerClass + " -> " + calleeClass + " : "+ mce.toStringWithoutComments() + "\n";
 	            	seqDiagCode += "activate " + calleeClass + "\n";
-	                parse(calleeFunc);
+	            	generateSequenceCode(calleeFunc);
 	                seqDiagCode += calleeClass + " -->> " + callerClass + "\n";
 	                seqDiagCode += "deactivate " + calleeClass + "\n";
 	            }
 	        }
 	    }
 	  //Changed
-	    private void compileClasses() {
+	    private void preCompileClasses() {
 	        for (CompilationUnit compilationUnit : cUnit) {
 	        	ClassOrInterfaceDeclaration classOrInterfaceDeclaration=null;
 	            List<TypeDeclaration> typeDeclarationList = compilationUnit.getTypes();
@@ -110,14 +109,21 @@ public class SequenceDiagramParser {
 				  }
 			  }
 		  }
-//
   
-	    private String generateDiagram(String source) throws IOException {
-
-	        OutputStream png = new FileOutputStream(outputPath);
-	        SourceStringReader reader = new SourceStringReader(source);
-	        String desc = reader.generateImage(png);
-	        return desc;
+	    private void sequenceDiagramOutputGeneration() {
+	        OutputStream outputImage;
+			try {
+				outputImage = new FileOutputStream(outputPath);
+			
+	        SourceStringReader sourceStringReader = new SourceStringReader(seqDiagCode);
+	      
+				sourceStringReader.generateImage(outputImage);
+			}  catch (FileNotFoundException e) {
+				
+				System.out.println("FileNotFoundException ocurred"+e.getMessage());
+			}	catch (IOException e) {
+				System.out.println("IOException Error ocurred"+e.getMessage());
+			}
 	    }
 
 
