@@ -13,6 +13,15 @@ public class UmlParser {
 				e.printStackTrace();
 			}
 		
+		}else{
+			SequenceDiagramParser sdp = new SequenceDiagramParser(args[1], args[2], args[3], args[4]);
+			try {
+				sdp.generateSequenceDiagram();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 	}
 	

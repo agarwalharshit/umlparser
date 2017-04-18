@@ -15,28 +15,31 @@ public class SequenceDiagramParser {
 		String inputPath="";
 		String seqDiagCode="@startuml\n";
 	    String outputPath="";
-//	    String inFuncName="";
-//	    String inClassName="";
+	    String inputClassName="";
+	    String inputFunctionName="";
+	   
+	    
 
-	    HashMap<String, String> mapMethodClass;
-	    ArrayList<CompilationUnit> cUnit;
-	    HashMap<String, ArrayList<MethodCallExpr>> mapMethodCalls;
+	    ArrayList<CompilationUnit> cUnit= new ArrayList<CompilationUnit>();
+	    HashMap<String, String> methodClassMapping=new HashMap<String, String>();
+	    HashMap<String, ArrayList<MethodCallExpr>> methodCallStack= new HashMap<String, ArrayList<MethodCallExpr>>();
 
-	    SequenceDiagramParser(String inputPath, String inClassName, String inFuncName,String outputFile) {
+	    
+	    SequenceDiagramParser(String inputPath, String inputClassName, String inputFunctionName,String outputFile) {
 	        this.inputPath = inputPath;
 	        this.outputPath = inputPath + "/" + outputFile + ".png";
-	        
-	        mapMethodClass = new HashMap<String, String>();
-	        mapMethodCalls = new HashMap<String, ArrayList<MethodCallExpr>>();
+	        this.inputClassName=inputClassName;
+	    	this.inputFunctionName=inputFunctionName;
 	    }
-	    public void generateSequenceDiagram(String inputClassName, String inputFunctionName) throws Exception {
+	    public void generateSequenceDiagram() throws Exception {
+	    	
 	    	 readAndParseJavaFile();
-	    	 buildMaps();
-	    	 seqDiagCode += "actor user #black\n";
-	    	 seqDiagCode += "user" + " -> " + inClassName + " : " + inFuncName + "\n";
-	    	 seqDiagCode += "activate " + mapMethodClass.get(inFuncName) + "\n";
-		     parse(inFuncName);
-		     seqDiagCode += "@enduml";
+	    	 compileClasses();
+	    	 seqDiagCode = seqDiagCode+ "actor user #black\n";
+	    	 seqDiagCode = seqDiagCode+ "user" + " -> " + inputClassName + " : " + inputFunctionName + "\n";
+	    	 seqDiagCode = seqDiagCode+ "activate " + methodClassMapping.get(inputFunctionName) + "\n";
+		     parse(inputFunctionName);
+		     seqDiagCode = seqDiagCode+ "@enduml";
 		     generateDiagram(seqDiagCode);
 		     System.out.println("Plant UML Code:\n" + seqDiagCode);
 	    }
@@ -45,57 +48,52 @@ public class SequenceDiagramParser {
 
 	    private void parse(String callerFunc) {
 
-	        for (MethodCallExpr mce : mapMethodCalls.get(callerFunc)) {
-	            String callerClass = mapMethodClass.get(callerFunc);
+	        for (MethodCallExpr mce : methodCallStack.get(callerFunc)) {
+	            String callerClass = methodClassMapping.get(callerFunc);
 	            String calleeFunc = mce.getName();
-	            String calleeClass = mapMethodClass.get(calleeFunc);
-	            if (mapMethodClass.containsKey(calleeFunc)) {
-	                pumlCode += callerClass + " -> " + calleeClass + " : "
-	                        + mce.toStringWithoutComments() + "\n";
-	                pumlCode += "activate " + calleeClass + "\n";
+	            String calleeClass = methodClassMapping.get(calleeFunc);
+	            if (methodClassMapping.containsKey(calleeFunc)) {
+	            	seqDiagCode += callerClass + " -> " + calleeClass + " : "+ mce.toStringWithoutComments() + "\n";
+	            	seqDiagCode += "activate " + calleeClass + "\n";
 	                parse(calleeFunc);
-	                pumlCode += calleeClass + " -->> " + callerClass + "\n";
-	                pumlCode += "deactivate " + calleeClass + "\n";
+	                seqDiagCode += calleeClass + " -->> " + callerClass + "\n";
+	                seqDiagCode += "deactivate " + calleeClass + "\n";
 	            }
 	        }
 	    }
-
-	    private void buildMaps() {
-	        for (CompilationUnit cu : cUnit) {
-	            String className = "";
-	            List<TypeDeclaration> td = cu.getTypes();
-	            for (Node n : td) {
-	                ClassOrInterfaceDeclaration coi = (ClassOrInterfaceDeclaration) n;
-	                className = coi.getName();
-	                for (BodyDeclaration bd : ((TypeDeclaration) coi)
-	                        .getMembers()) {
-	                    if (bd instanceof MethodDeclaration) {
-	                        MethodDeclaration md = (MethodDeclaration) bd;
-	                        ArrayList<MethodCallExpr> mcea = new ArrayList<MethodCallExpr>();
-	                        for (Object bs : md.getChildrenNodes()) {
-	                            if (bs instanceof BlockStmt) {
-	                                for (Object es : ((Node) bs)
-	                                        .getChildrenNodes()) {
-	                                    if (es instanceof ExpressionStmt) {
-	                                        if (((ExpressionStmt) (es))
-	                                                .getExpression() instanceof MethodCallExpr) {
-	                                            mcea.add(
-	                                                    (MethodCallExpr) (((ExpressionStmt) (es))
-	                                                            .getExpression()));
-	                                        }
-	                                    }
-	                                }
-	                            }
+	  //Changed
+	    private void compileClasses() {
+	        for (CompilationUnit compilationUnit : cUnit) {
+	        	ClassOrInterfaceDeclaration classOrInterfaceDeclaration=null;
+	            List<TypeDeclaration> typeDeclarationList = compilationUnit.getTypes();
+	            for (Node node : typeDeclarationList) {
+	                classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) node;
+	                for (BodyDeclaration bodyDeclaration : ((TypeDeclaration) classOrInterfaceDeclaration).getMembers()) {
+	                	MethodDeclaration methodDeclaration;
+	                    if (bodyDeclaration instanceof MethodDeclaration) {
+	                        methodDeclaration = (MethodDeclaration) bodyDeclaration;
+	                        ArrayList<MethodCallExpr> methodCallExprList;
+	                        methodCallExprList = new ArrayList<MethodCallExpr>();
+	                        for (Object blockStatementObject : methodDeclaration.getChildrenNodes()) {
+	                            if (blockStatementObject instanceof BlockStmt) {
+	                            	Node n1=(Node) blockStatementObject;
+	                                for (Object expressionStatementObject : n1.getChildrenNodes()) {
+	                                    if (expressionStatementObject instanceof ExpressionStmt) {
+	                                    	ExpressionStmt es1= (ExpressionStmt)expressionStatementObject;
+	                                    	
+	                                        if ((es1).getExpression() instanceof MethodCallExpr) {
+	                                        	MethodCallExpr methodCallExpr=(MethodCallExpr) es1.getExpression();
+	                                        	methodCallExprList.add(methodCallExpr);
+	                                        } }}}
 	                        }
-	                        mapMethodCalls.put(md.getName(), mcea);
-	                        mapMethodClass.put(md.getName(), className);
+	                        methodCallStack.put(methodDeclaration.getName(), methodCallExprList);
+	                        methodClassMapping.put(methodDeclaration.getName(), classOrInterfaceDeclaration.getName());
 	                    }
 	                }
 	            }
 	        }
-	     
 	    }
-//Changed
+
 		  void readAndParseJavaFile(){
 			  File folder= new File(inputPath);
 			  File[] files=folder.listFiles();
@@ -113,13 +111,10 @@ public class SequenceDiagramParser {
 			  }
 		  }
 //
-		  
-		  
-		  
-		  
+  
 	    private String generateDiagram(String source) throws IOException {
 
-	        OutputStream png = new FileOutputStream(outPath);
+	        OutputStream png = new FileOutputStream(outputPath);
 	        SourceStringReader reader = new SourceStringReader(source);
 	        String desc = reader.generateImage(png);
 	        return desc;
