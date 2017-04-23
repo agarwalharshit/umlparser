@@ -12,7 +12,6 @@ public class UmlParser {
 			} catch (Exception e) {
 				System.out.println("Exception ocurred"+e.getMessage());
 			}
-		
 		}else{
 			SequenceDiagramParser sdp = new SequenceDiagramParser(args[1], args[4]);
 			try {
