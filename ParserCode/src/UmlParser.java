@@ -19,12 +19,7 @@ public class UmlParser {
 				sdp.generateSequenceDiagram(args[2], args[3]);
 			} catch (Exception e) {
 				System.out.println("Exception ocurred"+e.getMessage());
-			}
-			
+			}		
 		}
 	}
-	
-
-	
-	
 }
