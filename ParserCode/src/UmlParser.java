@@ -8,7 +8,6 @@ public class UmlParser {
 		if(args[0].equalsIgnoreCase("class")){
 		ParserEngine pe= new ParserEngine(args[1],args[2]);
 			try {
-				
 				pe.start();
 			} catch (Exception e) {
 				System.out.println("Exception ocurred"+e.getMessage());
